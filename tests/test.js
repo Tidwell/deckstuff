@@ -1,4 +1,4 @@
-var GameComponents = require('./');
+var GameComponents = require('../');
 
 var game = new GameComponents.createGame();
 
@@ -6,6 +6,9 @@ var eventsToLog = [
 	'game:started',
 	'game:ended',
 	'game:addedPlayer',
+	'game:addedPhase',
+
+	'phase:created',
 
 	'player:created',
 

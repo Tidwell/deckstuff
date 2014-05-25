@@ -1,0 +1,13 @@
+{
+  "name": "deck-game-components",
+  "version": "0.0.1",
+  "author": "Aaron Tidwell <aaron.tidwell@gmail.com>",
+  "description": "components for deck games with complex zones/stacks",
+  "main": "./lib/",
+  "dependencies" : {
+    "eventemitter2": "*"
+  },
+  "engines": {
+    "node": ">=0.10.x"
+  }
+}
