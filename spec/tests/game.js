@@ -3,18 +3,11 @@ var decache = require('decache');
 describe('Game', function() {
 	var GameComponents;
 	var game;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = new GameComponents.createGame();
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
 	});
 	
 	it('should have a started and ended boolean that both start false', function() {
@@ -46,7 +39,7 @@ describe('Game', function() {
 	});
 	it('should fire game:addedPlayer when addPlayer is called', function() {
 		game.addPlayer({name: 'play1'});
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('game:addedPlayer');
+		expect(game.log.indexOf('game:addedPlayer')).not.toEqual(-1);
 	});
 
 	it('should add players sequentially', function() {
@@ -64,7 +57,7 @@ describe('Game', function() {
 
 	it('should fire game:addedPhase when addPhase is called', function() {
 		game.addPhase({name: 'phase1'});
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('game:addedPhase');
+		expect(game.log.indexOf('game:addedPhase')).not.toEqual(-1);
 	});
 
 	it('should add phases sequentially', function() {
@@ -80,7 +73,7 @@ describe('Game', function() {
 
 	it('should fire game:started when start is called', function() {
 		game.start();
-		expect(loggedEvents.indexOf('game:started')).not.toEqual(-1);
+		expect(game.log.indexOf('game:started')).not.toEqual(-1);
 	});
 
 	it('should set the active player randomly when start is called', function() {
@@ -97,7 +90,7 @@ describe('Game', function() {
 
 	it('should fire game:ended when start is called', function() {
 		game.end();
-		expect(loggedEvents).toEqual(['game:ended']);
+		expect(game.log.indexOf('game:ended')).not.toEqual(-1);
 	});
 
 	it('should advance the turn when newTurn is called', function() {
@@ -108,11 +101,11 @@ describe('Game', function() {
 	});
 	it('should fire game:newTurn when newTurn is called', function() {
 		game.newTurn();
-		expect(loggedEvents.indexOf('game:newTurn')).not.toEqual(-1);
+		expect(game.log.indexOf('game:newTurn')).not.toEqual(-1);
 	});
 	it('should fire game:activePlayerChange when cycleActivePlayer is called', function() {
 		game.cycleActivePlayer();
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('game:activePlayerChange');
+		expect(game.log.indexOf('game:activePlayerChange')).not.toEqual(-1);
 	});
 
 	it('cycleplayer should advance the active player and loop back', function() {

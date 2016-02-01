@@ -4,18 +4,11 @@ describe('Zone', function() {
 	var GameComponents;
 	var game;
 	var zone;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = GameComponents.createGame();
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
 		zone = new GameComponents.components.Zone('test-zone', game.events, {}, GameComponents.components);
 	});
 	
@@ -36,7 +29,7 @@ describe('Zone', function() {
 
 	it('should fire zone:created when created', function() {
 		//since constructing the game adds a zone, we dont need to manually make one
-		expect(loggedEvents).toEqual(['zone:created']);
+		expect(game.log.indexOf('zone:created')).not.toEqual(-1);
 	});
 
 	it('shold add a zone when addZone is called', function(){
@@ -52,7 +45,7 @@ describe('Zone', function() {
 	it('should fire zone:addedZone when added', function() {
 		zone.addZone('new-zone');
 		//the first zone is the game's zones created by the game
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('zone:addedZone');
+		expect(game.log.indexOf('zone:addedZone')).not.toEqual(-1);
 	});
 
 	it('should return an added zone by calling getZone', function(){
@@ -73,7 +66,7 @@ describe('Zone', function() {
 	it('should fire zone:addedStack when added', function() {
 		zone.addStack('new-stack');
 		//the first zone is the game's zones created by the game
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('zone:addedStack');
+		expect(game.log.indexOf('zone:addedStack')).not.toEqual(-1);
 	});
 
 	it('should return an added stack by calling getStack', function(){

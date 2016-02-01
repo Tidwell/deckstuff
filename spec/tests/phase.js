@@ -4,19 +4,11 @@ describe('Phase', function() {
 	var GameComponents;
 	var game;
 	var phase;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = GameComponents.createGame();
-
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
 
 		phase = game.addPhase({name: 'testphase'});
 	});
@@ -27,12 +19,12 @@ describe('Phase', function() {
 	});
 
 	it('should fire phase:created when instantiated', function() {
-		expect(loggedEvents[0]).toEqual('phase:created');
+		expect(game.log.indexOf('phase:created')).not.toEqual(-1);
 	});
 
 	it('should fire phase:entered when enter is called', function() {
 		phase.enter();
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('phase:entered');
+		expect(game.log.indexOf('phase:entered')).not.toEqual(-1);
 	});
 
 	it('should fire an action event when entered if no priority is set', function() {

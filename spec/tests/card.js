@@ -4,19 +4,13 @@ describe('Card', function() {
 	var GameComponents;
 	var game;
 	var card;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = GameComponents.createGame();
 		game.zones.addStack('test-stack');
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
+
 		card = game.zones.getStack('test-stack').add({name: 'test-card'});
 	});
 
@@ -35,7 +29,7 @@ describe('Card', function() {
 	});
 
 	it('should fire card:created when instantiated', function() {
-		expect(loggedEvents[0]).toEqual('card:created');
+		expect(game.log.indexOf('card:created')).not.toEqual(-1);
 	});
 
 	it('should update its location properties when updateLocation() is called', function() {
@@ -46,12 +40,12 @@ describe('Card', function() {
 		expect(card.previousStack).toBe('test-stack');
 	});
 
-	it('should fire card:stackChanged when moving', function() {
+	it('should fire card:stackChange when moving', function() {
 		card.updateLocation('newzone', 'newstack');
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('card:stackChange');
+		expect(game.log.indexOf('card:stackChange')).not.toEqual(-1);
 	});
-	it('should fire card:zoneChanged when moving', function() {
+	it('should fire card:zoneChange when moving', function() {
 		card.updateLocation('newzone', 'newstack');
-		expect(loggedEvents[1]).toEqual('card:zoneChange');
+		expect(game.log.indexOf('card:zoneChange')).not.toEqual(-1);
 	});
 });

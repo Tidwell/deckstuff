@@ -4,19 +4,11 @@ describe('Player', function() {
 	var GameComponents;
 	var game;
 	var player;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = GameComponents.createGame();
-		
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
 
 		player = new GameComponents.components.Player(game.events, {name: 'a'});
 		
@@ -28,6 +20,6 @@ describe('Player', function() {
 	});
 
 	it('should fire player:created when created', function() {
-		expect(loggedEvents).toEqual(['player:created']);
+		expect(game.log.indexOf('player:created')).not.toEqual(-1);
 	});
 });

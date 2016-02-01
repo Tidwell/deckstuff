@@ -4,18 +4,11 @@ describe('Stack', function() {
 	var GameComponents;
 	var game;
 	var stack;
-	var loggedEvents;
 
 	beforeEach(function() {
 		decache('../../');
 		GameComponents = require('../../');
 		game = GameComponents.createGame();
-		loggedEvents = [];
-		
-		//track events
-		game.events.on('*', function(data) {
-			loggedEvents.push(this.event);
-		});
 		stack = game.zones.addStack('test-stack');
 	});
 	
@@ -37,7 +30,7 @@ describe('Stack', function() {
 	});
 
 	it('should fire stack:created when instantiated', function() {
-		expect(loggedEvents[0]).toEqual('stack:created');
+		expect(game.log.indexOf('stack:created')).not.toEqual(-1);
 	});
 
 	it('should add a card when add() is called', function() {
@@ -72,7 +65,7 @@ describe('Stack', function() {
 
 	it('should fire stack:addedCard when add is called', function() {
 		stack.add({name: 'test-card-1'});
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('stack:addedCard');
+		expect(game.log.indexOf('stack:addedCard')).not.toEqual(-1);
 	});
 
 	it('should draw a card when draw() is called', function() {
@@ -84,7 +77,7 @@ describe('Stack', function() {
 	it('should fire stack:removedCard when draw is called', function() {
 		stack.add({name: 'test-card-1'});
 		stack.draw();
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('stack:removedCard');
+		expect(game.log.indexOf('stack:removedCard')).not.toEqual(-1);
 	});
 
 	it('should shuffle the stack when shuffle() is called', function() {
@@ -105,6 +98,6 @@ describe('Stack', function() {
 
 	it('should fire stack:shuffledCards when shuffle is called', function() {
 		stack.shuffle();
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('stack:shuffledCards');
+		expect(game.log.indexOf('stack:shuffledCards')).not.toEqual(-1);
 	});
 });
