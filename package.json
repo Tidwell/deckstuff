@@ -4,10 +4,17 @@
   "author": "Aaron Tidwell <aaron.tidwell@gmail.com>",
   "description": "components for deck games with complex zones/stacks",
   "main": "./lib/",
-  "dependencies" : {
+  "dependencies": {
     "eventemitter2": "*"
   },
   "engines": {
     "node": ">=0.10.x"
+  },
+  "devDependencies": {
+    "decache": "^3.0.3",
+    "jasmine": "^2.4.1"
+  },
+  "scripts": {
+    "test": "jasmine"
   }
 }
