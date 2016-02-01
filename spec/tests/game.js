@@ -80,7 +80,13 @@ describe('Game', function() {
 
 	it('should fire game:started when start is called', function() {
 		game.start();
-		expect(loggedEvents).toEqual(['game:started']);
+		expect(loggedEvents.indexOf('game:started')).not.toEqual(-1);
+	});
+
+	it('should set the active player randomly when start is called', function() {
+		game.start();
+		expect(typeof game.activePlayer).toBe('number');
+		expect(game.activePlayer).not.toBeLessThan(0);
 	});
 
 	it('should end when end is called', function() {
@@ -92,5 +98,63 @@ describe('Game', function() {
 	it('should fire game:ended when start is called', function() {
 		game.end();
 		expect(loggedEvents).toEqual(['game:ended']);
+	});
+
+	it('should advance the turn when newTurn is called', function() {
+		game.start();
+		var turn = game.turn;
+		game.newTurn();
+		expect(turn+1).toEqual(game.turn);
+	});
+	it('should fire game:newTurn when newTurn is called', function() {
+		game.newTurn();
+		expect(loggedEvents.indexOf('game:newTurn')).not.toEqual(-1);
+	});
+	it('should fire game:activePlayerChange when cycleActivePlayer is called', function() {
+		game.cycleActivePlayer();
+		expect(loggedEvents[loggedEvents.length-1]).toEqual('game:activePlayerChange');
+	});
+
+	it('cycleplayer should advance the active player and loop back', function() {
+		game.addPlayer({name: 'p1'});
+		game.addPlayer({name: 'p2'});
+		game.addPlayer({name: 'p3'});
+
+		game.start();
+		var ap1 = game.activePlayer;
+		game.cycleActivePlayer();
+		expect(ap1).not.toEqual(game.activePlayer);
+		var ap2 = game.activePlayer;
+		game.cycleActivePlayer();
+		expect(ap2).not.toEqual(game.activePlayer);
+		var ap3 = game.activePlayer;
+		game.cycleActivePlayer();
+		
+		//cycle back around
+		expect(ap1).toEqual(game.activePlayer);
+	});
+
+	it('cyclephase should advance the active phase and loop back', function() {
+		game.addPhase({name: 'phase1'});
+		game.addPhase({name: 'phase2'});
+		game.addPhase({name: 'phase3'});
+
+		game.start();
+		var ap1 = game.activePhase;
+		game.cycleActivePhase();
+		expect(ap1).not.toEqual(game.activePhase);
+		var ap2 = game.activePhase;
+		game.cycleActivePhase();
+		expect(ap2).not.toEqual(game.activePhase);
+		var ap3 = game.activePhase;
+		game.cycleActivePhase();
+		
+		//cycle back around
+		expect(ap1).toEqual(game.activePhase);
+	});
+	it('cyclephase should advance the turn if it has reached the end of all phases', function() {
+		game.start();
+		game.cycleActivePhase();
+		expect(game.turn).toBe(2);
 	});
 });

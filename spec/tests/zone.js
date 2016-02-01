@@ -89,4 +89,37 @@ describe('Zone', function() {
 			expect(z.id).toEqual(subzones[i]);
 		});
 	});
+
+	it('should return all cards in all subzones/stacks when getCards is called', function() {
+		var subzones = ['test-zone1', 'test-zone2', 'test-zone3'];
+		subzones.forEach(function(z){ zone.addZone(z); });
+
+		zone.forEach(function(z, i){
+			var stack = z.addStack('some-stack-'+i);
+			stack.add({name: 'somecard'+i});
+		});
+		
+		expect(zone.getCards().length).toBe(3);
+	});
+
+	it('should return all cards in no matter how deep', function() {
+		var subzones = ['test-zone1', 'test-zone2', 'test-zone3'];
+		subzones.forEach(function(z){ zone.addZone(z); });
+
+		var totalCards = 0;
+		zone.forEach(function(z, i){
+			var stack = z.addStack('some-stack-'+i);
+			stack.add({name: 'somecard'+i});
+			totalCards++;
+
+			subzones.forEach(function(subsub){ z.addZone(subsub); });
+			z.forEach(function(subsub,j){
+				var stack = z.addStack('some-stack-'+i+j);
+				stack.add({name: 'somecard'+i+j});
+				totalCards++;
+			});
+		});
+		
+		expect(zone.getCards().length).toBe(totalCards);
+	});
 });

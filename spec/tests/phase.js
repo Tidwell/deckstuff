@@ -30,8 +30,18 @@ describe('Phase', function() {
 		expect(loggedEvents[0]).toEqual('phase:created');
 	});
 
+	it('should fire phase:entered when enter is called', function() {
+		phase.enter();
+		expect(loggedEvents[loggedEvents.length-1]).toEqual('phase:entered');
+	});
 
-	it('should fire phase:created when created', function() {
-		expect(loggedEvents[loggedEvents.length-1]).toEqual('game:addedPhase');
+	it('should fire an action event when entered if no priority is set', function() {
+		var fired = false;
+		phase.priority = false;
+		phase.action = function() {
+			fired = true;
+		};
+		phase.enter();
+		expect(fired).toBe(true);
 	});
 });
