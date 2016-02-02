@@ -50,7 +50,12 @@ describe('Game setup', function() {
 	});
 
 	it('Each player opens a PACK of 5 CARDS and shuffles them together forming a 10 card PURCHASE', function() {
-		expect(z.getZone('shared:purchase').getCards().length).toBe(10);
+		//check the populate
+		var c = z.getZone('shared:purchase').getCards();
+		expect(c.length).toBe(10);
+		//check the shuffle
+		game.start();
+		expect(c).not.toEqual(z.getZone('shared:purchase').getCards());
 	});
 
 	//START OF GAME
