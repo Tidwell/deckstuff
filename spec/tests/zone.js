@@ -53,6 +53,13 @@ describe('Zone', function() {
 		expect(zone.getZone('test-zone')).toEqual(newZone);
 	});
 
+	it('should return a deep zone with :', function() {
+		var newZone = zone.addZone('test-zone');
+		var newZone2 = newZone.addZone('test-zone22');
+		var newZone3 = newZone2.addZone('test-zone3');
+		expect(zone.getZone('test-zone:test-zone22:test-zone3')).toEqual(newZone3);
+	});
+
 	it('shold add a stack when addStack is called', function(){
 		zone.addStack('test-stack');
 		expect(zone.stacks['test-stack']).toBeDefined();
@@ -112,6 +119,21 @@ describe('Zone', function() {
 				totalCards++;
 			});
 		});
+
+		//zone should have an owner (a player or a game)
+		
+		//zone has an access level
+		
+		//default is public
+
+		/*
+			access
+			------
+			public - all players can see all cards in all stacks
+			private - just the owner can see cards, others can count
+			hidden - only can be counted
+		 */
+
 		
 		expect(zone.getCards().length).toBe(totalCards);
 	});

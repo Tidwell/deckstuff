@@ -100,4 +100,19 @@ describe('Stack', function() {
 		stack.shuffle();
 		expect(game.log.indexOf('stack:shuffledCards')).not.toEqual(-1);
 	});
+
+	it('should return a card with an id via getCard', function() {
+		var c = stack.add({name: 'test-card-1'});
+		expect(stack.getCard(stack.cards[0].id)).toBe(c);
+	});
+	it('should remove the card from the stack when getCard pulls it', function() {
+		var c = stack.add({name: 'test-card-1'});
+		var c2 = stack.getCard(stack.cards[0].id, true);
+		expect(stack.cards.length).toBe(0);
+	});
+	it('should return the card from the stack when getCard pulls it', function() {
+		var c = stack.add({name: 'test-card-1'});
+		var c2 = stack.getCard(stack.cards[0].id, true);
+		expect(c2).toBe(c);
+	});
 });
