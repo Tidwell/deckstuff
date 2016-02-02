@@ -5,6 +5,9 @@ var zonesStacks = require('./zones-stacks');
 
 
 function onStart() {
+	//shuffle the purchase
+	this.zones.getZone('shared:purchase').getStack('packs').shuffle();
+
 	//Flip the top 3 cards of the PURCHASE to stacks BUY1 BUY2 and BUY3
 	c1 = this.zones.getZone('shared:purchase').getStack('packs').draw();
 	this.zones.getZone('shared:to-buy').getStack('buy1').add(c1);

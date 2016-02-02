@@ -53,9 +53,6 @@ describe('Game setup', function() {
 		//check the populate
 		var c = z.getZone('shared:purchase').getCards();
 		expect(c.length).toBe(10);
-		//check the shuffle
-		game.start();
-		expect(c).not.toEqual(z.getZone('shared:purchase').getCards());
 	});
 
 	//START OF GAME
