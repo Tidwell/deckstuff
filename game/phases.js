@@ -17,15 +17,11 @@ module.exports = function(game) {
 				c.resolve(game);
 			}
 			if (opts && opts.type === 'buy') {
-				var toBuy;
-				var cards = game.zones.getZone('shared:to-buy').getCards();
-				cards.forEach(function(c){
-					if (c.id === opts.id) {
-						toBuy = c;
-					}
-				});
-				var card = game.zones.getZone('shared:to-buy').getStack(toBuy.stack).getCard(toBuy.id, true);
-				game.zones.getZone('player-' + game.activePlayer).getStack('discard').add(card);
+				game.buy(opts.id);
+			}
+			if (opts && opts.type === 'mainframe') {
+				//do mainframe abilities
+				
 			}
 			if (pass) {
 				game.cycleActivePhase();
@@ -38,6 +34,11 @@ module.exports = function(game) {
 		action: function(attackers, pass) {
 			if (attackers) {
 				//allow player to declare attacks
+				attackers.forEach(function(attacker){
+					var c = game.zones.getZone('shared:player-' + game.activePlayer + '-inplay').getStack(attacker.id).getCard(attacker.id, true);
+					game.zones.getZone('shared:battle').addStack(attacker.id).add(c);
+				});
+				game.cycleActivePhase();
 			}
 			if (pass) {
 				game.cycleActivePhase();

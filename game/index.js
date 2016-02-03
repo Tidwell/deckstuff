@@ -1,5 +1,42 @@
 var GameComponents = require('../');
 
+GameComponents.components.Game.prototype.getActivePlayerCurrency = function() {
+		return this.zones.getZone('player-' + this.activePlayer).getStack('currency').cards.length;
+};
+GameComponents.components.Game.prototype.spendActivePlayerCurrency = function(amount) {
+	while (amount > 0) {
+		c = this.zones.getZone('player-' + this.activePlayer).getStack('currency').draw();
+		this.zones.getZone('player-' + this.activePlayer).getStack('discard').add(c);
+		amount--;
+	}
+};
+GameComponents.components.Game.prototype.buy = function(cardId) {
+	if (!cardId) { throw new Error('No card passed to buy'); }
+
+	var toBuy;
+	var cards = this.zones.getZone('shared:to-buy').getCards();
+	cards.forEach(function(c){
+		if (c.id === cardId) {
+			toBuy = c;
+		}
+	});
+	if (!toBuy) { throw Error('Not a valid buy'); }
+	if (!toBuy.cost) { toBuy.cost = 0; }
+
+	if (toBuy.cost <= this.getActivePlayerCurrency()) {
+		var card = this.zones.getZone('shared:to-buy').getStack(toBuy.stack).getCard(toBuy.id, true);
+		var copy = new this.components.Card(card, this.events);
+		this.zones.getZone('shared:purchase').getStack('packs').add(card);
+		this.zones.getZone('shared:purchase').getStack('packs').shuffle();
+		this.zones.getZone('player-' + this.activePlayer).getStack('discard').add(copy);
+		this.spendActivePlayerCurrency(card.cost);
+	} else {
+		console.log(toBuy.cost, this.getActivePlayerCurrency());
+		throw Error('Invalid currency to perform buy');
+	}
+	
+}
+
 var phases = require('./phases');
 var zonesStacks = require('./zones-stacks');
 

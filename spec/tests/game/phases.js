@@ -9,6 +9,17 @@ var players = [{
 var game;
 var z;
 
+var createCreatureCard = {
+	name: 'Create1powercreature',
+	resolve: function(game) {
+		//create the creature
+		var creature = new game.components.Card({name: '1powercreature', power: 1}, game.events);
+		game.zones.getZone('shared:player-' + game.activePlayer+'-inplay').addStack(creature.id).add(creature);
+		//move to discard
+		game.zones.getZone('player-' + game.activePlayer).getStack('discard').add(this);
+	}
+};
+
 describe('Phases', function() {
 	beforeEach(function() {
 		game = Game.createGame(players);
@@ -32,6 +43,20 @@ describe('Phases', function() {
 		expect(z.getZone('player-'+game.activePlayer).getStack('currency').cards.length).toBe(1);
 		expect(hand.cards.length).toBe(3);
 	});
+	it('playing a program should be able to create a bot', function() {
+		game.start();
+
+		var hand = z.getZone('player-'+game.activePlayer+':hand').getStack('hand');
+		
+		var card = hand.add(createCreatureCard);
+
+		game.getActivePhase().action({type: 'play', id: card.id});
+
+		expect(z.getZone('shared:player-'+game.activePlayer+'-inplay').getCards().length).toBe(1);
+		expect(hand.cards.length).toBe(4);
+		expect(z.getZone('player-'+game.activePlayer).getStack('discard').cards.length).toBe(1);
+
+	});
 	it('may buy a card from the buy stack', function() {
 		game.start();
 		var toBuy = z.getZone('shared:to-buy').getStack('buy1').cards[0];
@@ -44,7 +69,8 @@ describe('Phases', function() {
 	it('may use an ability on their mainframe', function() {
 		game.start();
 
-		expect(false).toBe(true)
+		//cost is paid
+		//resolve()
 
 	});
 	it('may advance to the next phase', function() {
@@ -56,31 +82,73 @@ describe('Phases', function() {
 		expect(game.getActivePhase().name).toBe('declare-attackers');
 	});
 
-	it('on playing a card', function() {
-		// -resolve text
-		// -program does as it says and is discard
-		// -currency goes to currency zone
-		// -check destroyed
+	it('Costs are paid by removing a currency card from a players CURRENCY stack to their DISCARD stack', function() {
+		game.start();
+		var toBuy = z.getZone('shared:to-buy').getStack('buy1').cards[0];
+		toBuy.cost = 3;
+
+		var cZone = z.getZone('player-'+game.activePlayer).getStack('currency');
+		cZone.add({name: 'dummy currency'});
+		cZone.add({name: 'dummy currency'});
+		cZone.add({name: 'dummy currency'});
+
+		game.spendActivePlayerCurrency(3);
+		expect(z.getZone('player-'+game.activePlayer).getStack('discard').cards.length).toBe(3);
 	});
 
-	it('on buying a card', function() {
-		// 			-cost is paid
-		// 			-card created and added to players discard if program, put in a node if a server
-		// 			-card removed from buy stack shuffled back into PURCHASE
+	it('should copy the card from the buy pile to put in the players deck and shuffle the bought back in', function() {
+		game.start();
+		var toBuy = z.getZone('shared:to-buy').getStack('buy1').cards[0];
+		toBuy.cost = 0;
+
+		game.getActivePhase().action({type: 'buy', id: toBuy.id});
+
+		expect(z.getZone('shared:purchase').getStack('packs').cards.length).toBe(8);
+		expect(z.getZone('player-'+game.activePlayer).getStack('discard').cards.length).toBe(1);
+		expect(z.getZone('shared:purchase').getCards().indexOf(toBuy)).not.toBe(-1);
+		expect(z.getZone('player-'+game.activePlayer).getStack('discard').getCard(toBuy.id)).toBe(undefined);
 	});
 
-	// 		-may use an ability on their mainframe
-	// 			-cost is paid
-	// 			-resolve text
-	// 		-may advance to the next phase
-	// 	declare-attackers
+
+	it('should be declare-attackers after main', function() {
+		game.start();
+		game.getActivePhase().action(null, true);
+		
+		expect(game.getActivePhase().name).toBe('declare-attackers');
+	});
+	it('active player can declare which bots are attacking and they should be moved to the shared:battle zone', function() {
+		game.start();
+		var hand = z.getZone('player-'+game.activePlayer).getZone('hand').getStack('hand');
+		var c1 = hand.add(createCreatureCard);
+		var c2 = hand.add(createCreatureCard);
+		game.getActivePhase().action({type: 'play', id: c1.id});
+		game.getActivePhase().action({type: 'play', id: c2.id});
+
+		game.getActivePhase().action(null, true);
+		var creatures = z.getZone('shared:player-'+game.activePlayer+'-inplay').getCards();
+		expect(creatures.length).toBe(2);
+
+		game.getActivePhase().action([{
+			id: creatures[0].id,
+			target: 'node1'
+		},
+		{
+			id: creatures[1].id,
+			target: 'node2'
+		}]);
+
+		expect(z.getZone('shared:battle').getCards().length).toBe(2);
+		expect(z.getZone('shared:player-'+game.activePlayer+'-inplay').getCards().length).toBe(0);
+		game.serialize();
+	});
+
 	// 		-active player can declare which bots are attacking which nodes or mainframe
-	// 		-attacking bots are tapped and moved into a SHARED:BATTLE zone
-	// 		-may advance to the next phase
+	// 		-attacking bots are tapped
+
 	// 	declare-defenders
 	// 		-blocking player can declare which bots are blocking which attacking bots
 	// 		-on assign, attacker and blocker are moved into a SHARED:COMBATS:COMBAT# zone in an ATTACKING & DEFENDING stack
-	// 		-may advance to the next phase
+
 	// 	resolve-damage
 	// 		-damage is dealt to each bot in each combat zone equal to their power
 	// 		-bots deal damage to nodes/mainframe if unblocked
@@ -98,5 +166,6 @@ describe('Phases', function() {
 // Mainframe cannot be attacked until Nodes are destroyed
 // A player loses if their mainframe is reduced to 0 health
 // A player wins if they are the last player in the game
+// if a player would draw a card from their deck and it is empty, their discard is shuffled to form a new deck, if still cant draw - no card is drawn
 
-// Costs are paid by removing a currency card from a players CURRENCY stack to their DISCARD stack
+// cards in the to-buy stacks have a MAXBUYS # and when bought reduced by one.  hits zero, removed from buys
