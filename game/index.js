@@ -32,8 +32,7 @@ GameComponents.components.Game.prototype.buy = function(cardId) {
 	if (toBuy.cost <= this.getActivePlayerCurrency()) {
 		var card = this.zones.getZone('shared:to-buy').getStack(toBuy.stack).getCard(toBuy.id, true);
 		var copy = new this.components.Card(card, this.events);
-		this.zones.getZone('shared:purchase').getStack('packs').add(card);
-		this.zones.getZone('shared:purchase').getStack('packs').shuffle();
+		this.zones.getZone('shared:purchase').getStack('packs').add(card, 'random');
 		this.zones.getZone('player-' + this.activePlayer).getStack('discard').add(copy);
 		this.spendActivePlayerCurrency(card.cost);
 	} else {
@@ -107,6 +106,32 @@ GameComponents.components.Game.prototype.resolveCombatDamage = function() {
 		var removedCard = combatsZone.getZone(c.zone).getStack(c.stack).getCard(c.id, true);
 		game.zones.getZone('shared:player-' + c.owner + '-inplay').getStack(c.id).add(removedCard);
 	});
+};
+
+GameComponents.components.Game.prototype.shuffleDiscard = function() {
+	var game = this;
+	var discard = game.zones.getZone('player-'+game.activePlayer).getStack('discard');
+	if (!discard.cards.length) { return; } //no cards to shuffle back in
+	discard.shuffle();
+	game.zones.getZone('player-'+game.activePlayer+':deck').getStack('deck').add(discard.cards);
+	game.zones.getZone('player-'+game.activePlayer).getStack('discard').empty();
+};
+
+GameComponents.components.Game.prototype.activeDraw = function() {
+	var game = this;
+	var hand = game.zones.getZone('player-'+game.activePlayer+':hand').getStack('hand');
+	var card = game.zones.getZone('player-' + game.activePlayer + ':deck').getStack('deck').draw();
+	if (!card) {
+		game.shuffleDiscard();
+		card = game.zones.getZone('player-' + game.activePlayer + ':deck').getStack('deck').draw();
+	}
+	if (!card) {
+		//no cards to shuffle in and continue drawing
+		return false;
+	}
+	
+	hand.add(card);
+	return true;
 };
 
 var phases = require('./phases');

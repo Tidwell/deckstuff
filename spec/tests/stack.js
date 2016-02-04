@@ -44,6 +44,11 @@ describe('Stack', function() {
 		expect(stack.cards.length).toBe(2);
 	});
 
+	it('should work when add() is called with an array of one item', function() {
+		stack.add([{name: 'test-card-1'}]);
+		expect(stack.cards.length).toBe(1);
+	});
+
 	it('should accept the bottom position to be add() to and draw() from', function() {
 		stack.add({name: 'test-card-1'});
 		stack.add({name: 'test-card-2'});

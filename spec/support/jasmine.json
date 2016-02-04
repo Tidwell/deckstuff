@@ -5,7 +5,7 @@
     "tests/game/**.js"
   ],
   "helpers": [
-    "helpers/**/*.js"
+    "helpers/*.js"
   ],
   "stopSpecOnExpectationFailure": false,
   "random": false

@@ -80,6 +80,7 @@ module.exports = function(game) {
 			}
 		},
 		enter: function(activePlayer) {
+			//check to make sure there are attackers
 			if (!game.zones.getZone('shared:battle').getCards().length) {
 				return game.cycleActivePhase();
 			}
@@ -97,6 +98,7 @@ module.exports = function(game) {
 			if (!game.ended) { game.cycleActivePhase(); }
 		},
 		enter: function() {
+			//check to make sure there are combats to resolve
 			var battleZone = game.zones.getZone('shared:battle');
 			var combatsZone = game.zones.getZone('shared:combats');
 			if (!battleZone.getCards().length && !combatsZone.getCards().length) {
@@ -118,7 +120,7 @@ module.exports = function(game) {
 		name: 'end-of-turn',
 		priority: false,
 		action: function() {
-			//placeholder phase
+			//Replace any bought cards
 			game.zones.getZone('shared:to-buy').forEachStack(function(stack){
 				if (stack.cards.length === 0) {
 					stack.add(game.zones.getZone('shared:purchase').getStack('packs').draw());
@@ -131,11 +133,11 @@ module.exports = function(game) {
 		name: 'draw',
 		priority: false,
 		action: function() {
-			var hand = game.zones.getZone('player-'+game.activePlayer+':hand').getStack('hand');
 			//make the active player draw to 4
+			var hand = game.zones.getZone('player-'+game.activePlayer+':hand').getStack('hand');
 			while (hand.cards.length < 4) {
-				var card = game.zones.getZone('player-'+game.activePlayer+':deck').getStack('deck').draw();
-				hand.add(card);
+				var canDraw = game.activeDraw();
+				if (!canDraw) { break; }
 			}
 			game.cycleActivePhase();
 		}
