@@ -1,5 +1,9 @@
 var GameComponents = require('../');
 
+GameComponents.components.Stack.prototype.damage = 0;
+GameComponents.components.Card.prototype.tapped = false;
+GameComponents.components.Card.prototype.owner = null;
+
 GameComponents.components.Game.prototype.getActivePlayerCurrency = function() {
 		return this.zones.getZone('player-' + this.activePlayer).getStack('currency').cards.length;
 };
@@ -42,6 +46,7 @@ var zonesStacks = require('./zones-stacks');
 
 
 function onStart() {
+	var self = this;
 	//shuffle the purchase
 	this.zones.getZone('shared:purchase').getStack('packs').shuffle();
 
@@ -64,6 +69,11 @@ function onStart() {
 			self.zones.getZone('player-'+pIndex+':hand').getStack('hand').add(card);
 			i++;
 		}
+	});
+
+	//make sure we give cards an owner
+	self.events.on('card:created', function(card){
+		card.owner = self.activePlayer;
 	});
 }
 
