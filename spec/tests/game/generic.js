@@ -8,8 +8,6 @@ describe('generic rules', function() {
 		z = game.zones;
 	});
 	
-	
-
 	it('Costs are paid by removing a currency card from a players CURRENCY stack to their DISCARD stack', function() {
 		game.start();
 		var toBuy = z.getZone('shared:to-buy').getStack('buy1').cards[0];
@@ -46,6 +44,9 @@ describe('generic rules', function() {
 		expect(z.getZone('player-' + game.activePlayer).getStack('discard').getCard(toBuy.id)).toBe(undefined);
 	});
 
+	function setTarget(creature){
+		creature.target = 'mainframe';
+	}
 	it('A player loses if their mainframe is reduced to 0 health', function() {
 		game.start();
 		var creatures;
@@ -54,9 +55,7 @@ describe('generic rules', function() {
 			creatures = playCreatures(game, z); //main
 			game.getActivePhase().action(null, true);
 			expect(game.getActivePhase().name).toBe('declare-attackers');
-			creatures.forEach(function(creature){
-				creature.target = 'mainframe';
-			});
+			creatures.forEach(setTarget);
 			game.getActivePhase().action(creatures);
 			expect(game.getActivePhase().name).toBe('declare-defenders');
 			game.getActivePhase().action(null,true); //pass block
