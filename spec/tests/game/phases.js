@@ -57,7 +57,6 @@ function playCreatures() {
 	});
 
 	var creatures = z.getZone('shared:player-' + game.activePlayer + '-inplay').getCards();
-	expect(creatures.length).toBe(2);
 	return creatures;
 }
 
@@ -102,10 +101,10 @@ describe('Phases', function() {
 		game.getActivePhase().action(null, true);
 
 		expect(game.getActivePhase().name).toBe('main');
-		
+
 		var inactivePlayer = game.activePlayer ? 0 : 1;
-		var c = z.getZone('shared:player-'+inactivePlayer+'-inplay').getCards();
-		c.forEach(function(card){
+		var c = z.getZone('shared:player-' + inactivePlayer + '-inplay').getCards();
+		c.forEach(function(card) {
 			expect(card.tapped).toBe(true);
 		});
 
@@ -115,18 +114,18 @@ describe('Phases', function() {
 
 		//pass during attacks
 		game.getActivePhase().action(null, true);
-		
+
 		//expect to skip blockers/dmg
 		expect(game.getActivePhase().name).toBe('second-main');
-		
+
 		//pass during 2nd main
 		game.getActivePhase().action(null, true);
 
 		expect(game.turn).toBe(3);
 		expect(game.getActivePhase().name).toBe('main');
 
-		c = z.getZone('shared:player-'+game.activePlayer+'-inplay').getCards();
-		c.forEach(function(card){
+		c = z.getZone('shared:player-' + game.activePlayer + '-inplay').getCards();
+		c.forEach(function(card) {
 			expect(card.tapped).toBe(false);
 		});
 	});
@@ -283,7 +282,9 @@ describe('Phases', function() {
 	// declare-defenders
 	it('inactive player declares blocks and attacker and blocker are moved into a SHARED:COMBATS:COMBAT# zone in an ATTACKING & DEFENDING', function() {
 		game.start();
-		game.phases[4].enter = function() { game.cycleActivePhase(); }; //disable the damage phase
+		game.phases[4].enter = function() {
+			game.cycleActivePhase();
+		}; //disable the damage phase
 
 		var creatures = playCreatures();
 		game.getActivePhase().action(null, true); //pass main
@@ -301,13 +302,13 @@ describe('Phases', function() {
 
 		expect(game.activePlayer).not.toEqual(activePlayer);
 		expect(game.getActivePhase().name).toBe('declare-defenders');
-		
+
 		declareBlocks(creatures2, creatures);
 
 		expect(z.getZone('shared:battle').getCards().length).toBe(0);
 		expect(z.getZone('shared:combats').getCards().length).toBe(4);
 		var totalZones = 0;
-		z.getZone('shared:combats').forEach(function(zone){
+		z.getZone('shared:combats').forEach(function(zone) {
 			expect(zone.getCards().length).toBe(2);
 			totalZones++;
 		});
@@ -342,25 +343,30 @@ describe('Phases', function() {
 		declareBlocks(creatures2, creatures);
 
 		expect(game.getActivePhase().name).toBe('second-main');
-		expect(z.getZone('shared:player-'+(game.activePlayer ? 0 : 1)+'-inplay').getCards()[0].power).toBe(0);
-		expect(z.getZone('shared:player-'+(game.activePlayer ? 0 : 1)+'-inplay').getCards()[1].power).toBe(1);
-		expect(z.getZone('shared:player-'+(game.activePlayer)+'-inplay').getCards()[0].power).toBe(1);
-		expect(z.getZone('shared:player-'+(game.activePlayer)+'-inplay').getCards()[1].power).toBe(0);
+		expect(z.getZone('shared:player-' + (game.activePlayer ? 0 : 1) + '-inplay').getCards()[0].power).toBe(1);
+		expect(z.getZone('shared:player-' + (game.activePlayer) + '-inplay').getCards()[0].power).toBe(1);
 	});
-	
+
 	it('bots deal damage to nodes/mainframe if unblocked', function() {
 		game.start();
 		var creatures = playCreatures();
 		game.getActivePhase().action(null, true);
 		declareAttacks(creatures);
 		game.getActivePhase().action(null, true);
-		
+
 		expect(game.getActivePhase().name).toBe('second-main');
-		expect(game.zones.getZone('player-'+(game.activePlayer ? 0 : 1)).getStack('node1').damage).toBe(1);
-		expect(game.zones.getZone('player-'+(game.activePlayer ? 0 : 1)).getStack('node2').damage).toBe(1);
+		expect(game.zones.getZone('player-' + (game.activePlayer ? 0 : 1)).getStack('node1').damage).toBe(1);
+		expect(game.zones.getZone('player-' + (game.activePlayer ? 0 : 1)).getStack('node2').damage).toBe(1);
 	});
-	// 		-
-	// 		-check destroyed
+
+	it('game.resolveInplayDeaths() should destroy all 0 power bots in play', function() {
+		game.start();
+		var creatures = playCreatures();
+		expect(z.getZone('shared:player-' + game.activePlayer + '-inplay').getCards().length).toBe(2);
+		creatures[0].power = 0;
+		game.resolveInplayDeaths();
+		expect(z.getZone('shared:player-' + game.activePlayer + '-inplay').getCards().length).toBe(1);
+	});
 
 	it('should move all undead units back to inplay zones after combat', function() {
 		game.start();
@@ -396,27 +402,93 @@ describe('Phases', function() {
 		expect(game.getActivePhase().name).toBe('second-main');
 		expect(z.getZone('shared:battle').getCards().length).toBe(0);
 		expect(z.getZone('shared:combats').getCards().length).toBe(0);
-		expect(z.getZone('shared:player-0-inplay').getCards().length).toBe(2);
-		expect(z.getZone('shared:player-1-inplay').getCards().length).toBe(2);
+		expect(z.getZone('shared:player-0-inplay').getCards().length).toBe(1);
+		expect(z.getZone('shared:player-1-inplay').getCards().length).toBe(1);
 
 	});
-	// 	second-main
-	// 		SEE main
-	// 	end-of-turn
-	// 		-flip new cards from the PURCHASE to the BUY stacks
-	// 	draw
-	// 		-active player draws till they have 4 cards in hand
+
+	it('end of turn flip new cards from the PURCHASE to the BUY stack', function() {
+		game.start();
+		var toBuy = z.getZone('shared:to-buy').getStack('buy1').cards[0];
+
+		game.getActivePhase().action({
+			type: 'buy',
+			id: toBuy.id
+		});
+
+		expect(z.getZone('player-' + game.activePlayer).getStack('discard').cards.length).toBe(1);
+		game.getActivePhase().action(null, true); //pass main
+		game.getActivePhase().action(null, true); //combat
+		game.getActivePhase().action(null, true); //second main
+
+		expect(game.turn).toBe(2);
+		expect(z.getZone('shared:to-buy').getCards().length).toBe(3);
+	});
+
+	it('draw phase, active player draws till they have 4 cards in hand', function() {
+		game.start();
+		var handId = 'player-' + game.activePlayer + ':hand';
+		var hand = z.getZone(handId).getStack('hand');
+		var toDo = [];
+		hand.cards.forEach(function(card) {
+			toDo.push(function() {
+				game.getActivePhase().action({
+					type: 'play',
+					id: card.id
+				});
+			});
+		});
+		toDo.forEach(function(func) {
+			func();
+		});
+		game.getActivePhase().action(null, true); //pass main
+		game.getActivePhase().action(null, true); //combat
+		game.getActivePhase().action(null, true); //second main
+		expect(game.turn).toBe(2);
+		expect(z.getZone(handId).getCards().length).toBe(4);
+	});
+
+	it('A player loses if their mainframe is reduced to 0 health', function() {
+		game.start();
+		var creatures;
+		while (!game.ended) {
+			expect(game.getActivePhase().name).toBe('main');
+			creatures = playCreatures(); //main
+			game.getActivePhase().action(null, true);
+			expect(game.getActivePhase().name).toBe('declare-attackers');
+			creatures.forEach(function(creature){
+				creature.target = 'mainframe';
+			});
+			game.getActivePhase().action(creatures);
+			expect(game.getActivePhase().name).toBe('declare-defenders');
+			game.getActivePhase().action(null,true); //pass block
+			if (!game.ended) {
+				expect(game.getActivePhase().name).toBe('second-main');
+				game.getActivePhase().action(null, true); //second main
+			}
+		}
+		expect(game.ended).toBe(true);
+		game.players.forEach(function(p,i){
+			if (p.loss) { expect(game.zones.getZone('player-'+i).getStack('mainframe').damage).toBe(20);}
+			else { expect(game.zones.getZone('player-'+i).getStack('mainframe').damage).toBe(12);}
+		});
+		var fs = require('fs');
+		fs.writeFileSync('./dump.json', game.serialize());
+
+	});
+
+	it('if a player would draw a card from their deck and it is empty, their discard is shuffled to form a new deck', function() {
+
+	});
+
+	it('cards in the to-buy stacks have a MAXBUYS # and when bought reduced by one.  hits zero, removed from buys', function() {
+
+	});
 });
 
-// Bot is destroyed if reduced to 0 power
-// Node is destroyed if reduced to 0 health
-// Mainframe cannot be attacked until Nodes are destroyed
-// A player loses if their mainframe is reduced to 0 health
-// A player wins if they are the last player in the game
-// if a player would draw a card from their deck and it is empty, their discard is shuffled to form a new deck, if still cant draw - no card is drawn
-
-// cards in the to-buy stacks have a MAXBUYS # and when bought reduced by one.  hits zero, removed from buys
-//support multi-blocks
-//support assigning damage?
-
+//test multi-blocks
 //fix to respect priority on phase declaration
+
+//support assigning damage?
+// Node is destroyed if reduced to 0 health?
+// Mainframe cannot be attacked until Nodes are destroyed?

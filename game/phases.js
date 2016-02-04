@@ -90,42 +90,11 @@ module.exports = function(game) {
 		name: 'resolve-damage',
 		priority: false,
 		action: function() {
-			var battleZone = game.zones.getZone('shared:battle');
-			var combatsZone = game.zones.getZone('shared:combats');
-			//resolve damage between creatures
-			combatsZone.forEach(function(zone) {
-				var attackerTotal = 0;
-				var defenderTotal = 0;
-				zone.getStack('attackers').cards.forEach(function(c) {
-					attackerTotal += c.power;
-				});
-				zone.getStack('defenders').cards.forEach(function(c) {
-					defenderTotal += c.power;
-					c.power -= attackerTotal;
-					if (c.power < 0) { c.power = 0; }
-				});
-				zone.getStack('attackers').cards.forEach(function(c) {
-					c.power -= defenderTotal;
-					if (c.power < 0) { c.power = 0; }
-				});
-			});
-			//resolve damage dealt to node/mainframe stacks
-			battleZone.getCards().forEach(function(c) {
-				var inactivePlayer = game.activePlayer ? 0 : 1;
-				var target = game.zones.getZone('player-'+inactivePlayer).getStack(c.target);
-				target.damage += c.power;
-			});
-			
-			//move all creatures back to their owners inplay
-			battleZone.getCards().forEach(function(c){
-				var removedCard = battleZone.getStack(c.stack).getCard(c.id, true);
-				game.zones.getZone('shared:player-' + c.owner + '-inplay').getStack(c.id).add(removedCard);
-			});
-			combatsZone.getCards().forEach(function(c){
-				var removedCard = combatsZone.getZone(c.zone).getStack(c.stack).getCard(c.id, true);
-				game.zones.getZone('shared:player-' + c.owner + '-inplay').getStack(c.id).add(removedCard);
-			});
-			game.cycleActivePhase();
+			game.resolveCombatDamage();
+
+			game.resolveInplayDeaths();
+
+			if (!game.ended) { game.cycleActivePhase(); }
 		},
 		enter: function() {
 			var battleZone = game.zones.getZone('shared:battle');
@@ -150,6 +119,11 @@ module.exports = function(game) {
 		priority: false,
 		action: function() {
 			//placeholder phase
+			game.zones.getZone('shared:to-buy').forEachStack(function(stack){
+				if (stack.cards.length === 0) {
+					stack.add(game.zones.getZone('shared:purchase').getStack('packs').draw());
+				}
+			});
 			game.cycleActivePhase();
 		}
 	};
@@ -157,8 +131,12 @@ module.exports = function(game) {
 		name: 'draw',
 		priority: false,
 		action: function() {
+			var hand = game.zones.getZone('player-'+game.activePlayer+':hand').getStack('hand');
 			//make the active player draw to 4
-
+			while (hand.cards.length < 4) {
+				var card = game.zones.getZone('player-'+game.activePlayer+':deck').getStack('deck').draw();
+				hand.add(card);
+			}
 			game.cycleActivePhase();
 		}
 	};

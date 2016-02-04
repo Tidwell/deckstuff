@@ -4,6 +4,8 @@ GameComponents.components.Stack.prototype.damage = 0;
 GameComponents.components.Card.prototype.tapped = false;
 GameComponents.components.Card.prototype.owner = null;
 
+GameComponents.components.Game.prototype.PLAYERHEALTH = 20;
+
 GameComponents.components.Game.prototype.getActivePlayerCurrency = function() {
 		return this.zones.getZone('player-' + this.activePlayer).getStack('currency').cards.length;
 };
@@ -39,7 +41,73 @@ GameComponents.components.Game.prototype.buy = function(cardId) {
 		throw Error('Invalid currency to perform buy');
 	}
 	
-}
+};
+GameComponents.components.Game.prototype.resolveInplayDeaths = function() {
+	var self = this;
+	self.players.forEach(function(p,i){
+		var inPlay = self.zones.getZone('shared:player-'+i+'-inplay').getCards();
+		inPlay.forEach(function(c){
+			if (c.power === 0) {
+				//kill it
+				self.zones.getZone('shared:player-'+i+'-inplay').getStack(c.stack).getCard(c.id, true);
+			}
+		});
+
+		//check loss
+		var mainframe = self.zones.getZone('player-'+i).getStack('mainframe');
+		if (mainframe.damage >= self.PLAYERHEALTH) {
+			p.loss = true;
+			self.ended = true;
+		}
+	});
+	if(self.ended) {
+		self.players.forEach(function(p){
+			if (!p.loss) {
+				p.win = true;
+			}
+		});
+		this.events.emit('game:over', self.players);
+	}
+};
+
+GameComponents.components.Game.prototype.resolveCombatDamage = function() {
+	var game = this;
+	var battleZone = game.zones.getZone('shared:battle');
+	var combatsZone = game.zones.getZone('shared:combats');
+	//resolve damage between creatures
+	combatsZone.forEach(function(zone) {
+		var attackerTotal = 0;
+		var defenderTotal = 0;
+		zone.getStack('attackers').cards.forEach(function(c) {
+			attackerTotal += c.power;
+		});
+		zone.getStack('defenders').cards.forEach(function(c) {
+			defenderTotal += c.power;
+			c.power -= attackerTotal;
+			if (c.power < 0) { c.power = 0; }
+		});
+		zone.getStack('attackers').cards.forEach(function(c) {
+			c.power -= defenderTotal;
+			if (c.power < 0) { c.power = 0; }
+		});
+	});
+	//resolve damage dealt to node/mainframe stacks
+	battleZone.getCards().forEach(function(c) {
+		var inactivePlayer = game.activePlayer ? 0 : 1;
+		var target = game.zones.getZone('player-'+inactivePlayer).getStack(c.target);
+		target.damage += c.power;
+	});
+
+	//move all creatures back to their owners inplay
+	battleZone.getCards().forEach(function(c){
+		var removedCard = battleZone.getStack(c.stack).getCard(c.id, true);
+		game.zones.getZone('shared:player-' + c.owner + '-inplay').getStack(c.id).add(removedCard);
+	});
+	combatsZone.getCards().forEach(function(c){
+		var removedCard = combatsZone.getZone(c.zone).getStack(c.stack).getCard(c.id, true);
+		game.zones.getZone('shared:player-' + c.owner + '-inplay').getStack(c.id).add(removedCard);
+	});
+};
 
 var phases = require('./phases');
 var zonesStacks = require('./zones-stacks');
@@ -61,7 +129,6 @@ function onStart() {
 	//Each player draws 4 cards
 	var toDraw = 4;
 	
-	var self = this;
 	this.players.forEach(function(p,pIndex){
 		var i = 0;
 		while (i < 4) {
