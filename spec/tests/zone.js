@@ -134,6 +134,17 @@ describe('Zone', function() {
 		var c = stack.add({name: 'test-card-1'});
 		expect(zone.getCard(stack.cards[0].id)).toBe(c);
 	});
+	it('should actually remove the card from any nested from getCard', function() {
+		var z = zone.addZone('tst');
+		var stack = z.addStack('test-stack');
+		var c = stack.add({name: 'test-card-1'});
+		expect(zone.getCard(stack.cards[0].id, true)).toBe(c);
+		expect(zone.getCards().length).toBe(0);
+	});
+
+	it('should return null if card is not found', function() {
+		expect(zone.getCard('nope')).toBe(null);
+	});
 
 		//zone should have an owner (a player or a game)
 		
