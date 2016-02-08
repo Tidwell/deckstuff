@@ -119,6 +119,21 @@ describe('Zone', function() {
 				totalCards++;
 			});
 		});
+		
+		expect(zone.getCards().length).toBe(totalCards);
+	});
+
+	it('should return a card from getCard', function() {
+		var stack = zone.addStack('test-stack');
+		var c = stack.add({name: 'test-card-1'});
+		expect(zone.getCard(stack.cards[0].id)).toBe(c);
+	});
+	it('should return a card from any nested from getCard', function() {
+		var z = zone.addZone('tst');
+		var stack = z.addStack('test-stack');
+		var c = stack.add({name: 'test-card-1'});
+		expect(zone.getCard(stack.cards[0].id)).toBe(c);
+	});
 
 		//zone should have an owner (a player or a game)
 		
@@ -134,7 +149,4 @@ describe('Zone', function() {
 			hidden - only can be counted
 		 */
 
-		
-		expect(zone.getCards().length).toBe(totalCards);
-	});
 });
