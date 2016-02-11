@@ -120,4 +120,9 @@ describe('Stack', function() {
 		var c2 = stack.getCard(stack.cards[0].id, true);
 		expect(c2).toBe(c);
 	});
+
+	it('should return all cards if getCards() is called', function() {
+		var c = stack.add({name: 'test-card-1'});
+		expect(stack.getCards().length).toBe(1);
+	});
 });
