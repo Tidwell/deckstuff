@@ -60,6 +60,19 @@ describe('Zone', function() {
 		expect(zone.getZone('test-zone:test-zone22:test-zone3')).toEqual(newZone3);
 	});
 
+	it('should remove a zone with removeZone', function(){
+		zone.addZone('test-zone');
+		zone.removeZone('test-zone');
+		expect(zone.getZone('test-zone')).toEqual(undefined);
+	});
+	it('should remove all zones with removeZones', function(){
+		zone.addZone('test-zone');
+		zone.addZone('test-zone2');
+		zone.removeZones();
+		expect(zone.getZone('test-zone')).toEqual(undefined);
+		expect(zone.getZone('test-zone2')).toEqual(undefined);
+	});
+
 	it('shold add a stack when addStack is called', function(){
 		zone.addStack('test-stack');
 		expect(zone.stacks['test-stack']).toBeDefined();
@@ -79,6 +92,19 @@ describe('Zone', function() {
 	it('should return an added stack by calling getStack', function(){
 		var newStack = zone.addStack('test-stack');
 		expect(zone.getStack('test-stack')).toEqual(newStack);
+	});
+
+	it('should remove a stack with removeStack', function(){
+		var newStack = zone.addStack('test-stack');
+		zone.removeStack('test-stack');
+		expect(zone.getStack('test-stack')).toEqual(undefined);
+	});
+	it('should remove all stacks with removeStacks', function(){
+		var newStack = zone.addStack('test-stack');
+		var newStack2 = zone.addStack('test-stack2');
+		zone.removeStacks();
+		expect(zone.getStack('test-stack')).toEqual(undefined);
+		expect(zone.getStack('test-stack2')).toEqual(undefined);
 	});
 
 	it('should allow you to itterate over all subzones with forEach', function() {
